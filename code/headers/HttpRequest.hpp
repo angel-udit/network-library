@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+
 #include "HttpMessage.hpp"
 
 namespace argb
@@ -49,7 +50,7 @@ namespace argb
 
         private:
 
-            void parse_header ();
+            void parse_header        ();
             void parse_request_line  (std::string_view line);
             void parse_uri           (std::string_view uri);
             void parse_query         (std::string_view query_string);

@@ -16,8 +16,7 @@ namespace argb
         : state               (RECEIVING_REQUEST)
         , last_activity       (now ()           )
         , request_parser      (request          )
-        , response_serializer (response         )
-        , response_bytes_sent (0               )
+        , response_bytes_sent (0                )
     {
     }
 
@@ -28,10 +27,50 @@ namespace argb
         , request             (std::move (other.request ))
         , response            (std::move (other.response))
         , request_parser      (request                   )                  // Re-initialize with this object's request
-        , response_serializer (response                  )                  // Re-initialize with this object's response
         , handler             (std::move (other.handler ))
         , response_bytes_sent (other.response_bytes_sent )
     {
+    }
+
+    void HttpServer::RequestHandlerManager::register_handler_factory (std::string path, HttpRequestHandlerFactory & factory) 
+    {
+        // Ensure that the path does not end with a '/' to maintain consistency in validation logic:
+
+        if (path.length () > 1 && path.back () == '/') 
+        {
+            path.pop_back ();
+        }
+
+        handler_factories[std::move (path)] = &factory;
+    }
+
+    HttpRequestHandlerFactory * HttpServer::RequestHandlerManager::find_handler_factory_for_path(std::string_view request_path) const 
+    {
+        if (not handler_factories.empty ())
+        {
+            auto item = handler_factories.upper_bound (request_path);
+
+            if (item != handler_factories.begin ()) 
+            {
+                --item;
+
+                const std::string & factory_path = item->first;
+
+                if (request_path.starts_with (factory_path))
+                {                
+                    // If the request path is exactly the same as the factory path, or if the next character in the
+                    // request path after the factory path is a '/' (indicating a complete folder match), or if the
+                    // factory path is the root "/", then we consider it a valid match:
+
+                    if (request_path.length () == factory_path.length () || request_path[factory_path.length ()] == '/' || factory_path == "/")
+                    {
+                        return item->second;
+                    }
+                }
+            }
+        }
+
+        return nullptr;
     }
 
     void HttpServer::run (const Address & address, const Port & port)
@@ -64,8 +103,7 @@ namespace argb
             
                 ConnectionContext context;
 
-                context.handler = default_handler;
-                context.socket  = std::move (*new_socket); 
+                context.socket =  std::move (*new_socket); 
                 context.socket.set_blocking (false);
 
                 connections.emplace (socket_handle, std::move (context));
@@ -114,7 +152,26 @@ namespace argb
 
             if (parsed) 
             {
-                context.state = ConnectionContext::RUNNING_HANDLER;
+                context.handler = request_handler_manager.create_handler (context.request.get_method (), context.request.get_path ());
+
+                if (context.handler)
+                {
+                    context.state = ConnectionContext::RUNNING_HANDLER;
+                }
+                else
+                {
+                    static constexpr std::string_view not_found_message = "File not found";
+
+                    HttpResponse::Serializer(context.response)
+                        .status     (404)
+                        .header     ("Content-Type",   "text/plain; charset=utf-8")
+                        .header     ("Content-Length", std::to_string (not_found_message.size ()))
+                        .header     ("Connection",     "close")
+                        .end_header ()
+                        .body       (not_found_message);
+
+                    context.state = ConnectionContext::WRITING_RESPONSE_HEADER;
+                }
             }
 
             context.last_activity = now ();
@@ -175,10 +232,12 @@ namespace argb
             {
                 if (context.handler)
                 {
-                    context.handler->handle_request (socket_handle, context.request, context.response);
+                    const bool finished = context.handler->process (context.request, context.response, socket_handle);
 
-                    context.state = ConnectionContext::WRITING_RESPONSE_HEADER;
-                    context.response_bytes_sent = 0;
+                    if (finished)
+                    {
+                        context.state = ConnectionContext::WRITING_RESPONSE_HEADER;
+                    }
                 }
             }
         }

@@ -13,6 +13,7 @@ namespace argb
         status_serialized = false;
         header_serialized = false;
 
+        response->status = 0;
         response->header .clear ();
         response->headers.clear ();
         response->body   .clear ();
@@ -59,12 +60,6 @@ namespace argb
 
         header_serialized = true;
 
-        return *this;
-    }
-
-    HttpResponse::Serializer & HttpResponse::Serializer::body (std::string_view content)
-    {
-        response->body.insert (response->body.end (), content.begin (), content.end ());
         return *this;
     }
 

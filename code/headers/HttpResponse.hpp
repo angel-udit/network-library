@@ -31,7 +31,6 @@ namespace argb
             Serializer & status     (int status);
             Serializer & header     (std::string_view name, std::string_view value);
             Serializer & end_header ();
-            Serializer & body       (std::string_view content);
             Serializer & body       (std::span<const char> content);
 
         private:

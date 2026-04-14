@@ -15,6 +15,7 @@
     <ClInclude Include="..\..\code\headers\Address.hpp" />
     <ClInclude Include="..\..\code\headers\HttpMessage.hpp" />
     <ClInclude Include="..\..\code\headers\HttpRequest.hpp" />
+    <ClInclude Include="..\..\code\headers\HttpRequestHandlerFactory.hpp" />
     <ClInclude Include="..\..\code\headers\HttpResponse.hpp" />
     <ClInclude Include="..\..\code\headers\HttpServer.hpp" />
     <ClInclude Include="..\..\code\headers\macros.hpp" />

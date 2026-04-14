@@ -69,6 +69,9 @@
     <ClInclude Include="..\..\code\sources\winsock2\winsock2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\code\headers\HttpRequestHandlerFactory.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\code\sources\HttpRequest.cpp">
