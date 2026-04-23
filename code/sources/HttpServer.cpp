@@ -60,10 +60,10 @@ namespace argb
 
             while (running) 
             {
-                accept_connections ();
-                transfer_data ();
-                run_handlers ();
-                close_inactive_connections ();
+                accept_connections  ();
+                transfer_data       ();
+                run_handlers        ();
+                dispose_connections ();
 
                 std::this_thread::yield (); 
             }
@@ -220,7 +220,7 @@ namespace argb
         }
     }
 
-    void HttpServer::close_inactive_connections ()
+    void HttpServer::dispose_connections ()
     {
         const auto current_time = now ();
 

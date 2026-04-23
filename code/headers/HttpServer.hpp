@@ -35,14 +35,14 @@ namespace argb
                 CLOSED,
             };
 
-            State                    state;
-            Timestamp                last_activity;
-            TcpSocket                socket;
-            HttpRequest              request;
-            HttpResponse             response;
-            HttpRequest::Parser      request_parser;
-            size_t                   response_bytes_sent;
-            HttpRequestHandler::Ptr  handler;
+            State                   state;
+            Timestamp               last_activity;
+            TcpSocket               socket;
+            HttpRequest             request;
+            HttpResponse            response;
+            HttpRequest::Parser     request_parser;
+            size_t                  response_bytes_sent;
+            HttpRequestHandler::Ptr handler;
 
             ConnectionContext();
 
@@ -114,13 +114,13 @@ namespace argb
 
     private:
 
-        void accept_connections ();
-        void transfer_data ();
-        void receive_request (ConnectionContext & context);
+        void accept_connections    ();
+        void transfer_data         ();
+        void receive_request       (ConnectionContext & context);
         void write_response_header (ConnectionContext & context);
-        void write_response_body (ConnectionContext & context);
-        void run_handlers ();
-        void close_inactive_connections ();
+        void write_response_body   (ConnectionContext & context);
+        void run_handlers          ();
+        void dispose_connections   ();
 
     };
 
